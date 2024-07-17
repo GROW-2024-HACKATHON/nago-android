@@ -1,7 +1,9 @@
 package com.grow.nago.ui.animation
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -28,6 +30,39 @@ fun Modifier.bounceClick(onClick: () -> Unit, requireUnconsumed: Boolean = false
             interactionSource = remember { MutableInteractionSource() },
             indication = null,
             onClick = onClick,
+        )
+        .graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
+        .pointerInput(buttonState) {
+            awaitPointerEventScope {
+                buttonState = if (buttonState == ButtonState.Hold) {
+                    waitForUpOrCancellation()
+                    ButtonState.Idle
+                } else {
+                    awaitFirstDown(requireUnconsumed)
+                    ButtonState.Hold
+                }
+                onChangeButtonState(buttonState)
+            }
+        }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+fun Modifier.bounceLongClick(onClick: () -> Unit, onLongClick: () -> Unit = {}, requireUnconsumed: Boolean = false, onChangeButtonState: (ButtonState) -> Unit = {}) = composed {
+    var buttonState by remember { mutableStateOf(ButtonState.Idle) }
+    val scale by animateFloatAsState(
+        targetValue = if (buttonState == ButtonState.Idle) 1f else 0.95f,
+        label = "",
+    )
+
+    this
+        .combinedClickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = onClick,
+            onLongClick = onLongClick
         )
         .graphicsLayer {
             scaleX = scale

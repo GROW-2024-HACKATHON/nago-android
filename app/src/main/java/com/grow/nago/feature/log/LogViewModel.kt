@@ -40,4 +40,23 @@ class LogViewModel: ViewModel() {
         }
     }
 
+    fun removeReport(id: Int) = viewModelScope.launch {
+        kotlin.runCatching {
+            RetrofitBuilder.reportService.deleteReport(id)
+        }.onSuccess {
+            _state.update {
+                it.copy(
+                    reportData = it.reportData.toMutableList().apply {
+                        removeIf {
+                            it.id == id
+                        }
+                    }
+                )
+            }
+            _sideEffect.send(LogSideEffect.SuccessDelete)
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
+
 }

@@ -8,4 +8,5 @@ data class LogUiState(
 
 sealed interface LogSideEffect {
     data object SuccessLoad: LogSideEffect
+    data object SuccessDelete: LogSideEffect
 }

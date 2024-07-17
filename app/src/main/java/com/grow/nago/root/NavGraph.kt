@@ -158,7 +158,9 @@ fun NavGraph(){
                     composable(
                         route = NavGroup.LOG
                     ) {
-                        LogScreen()
+                        LogScreen(
+                            navController = navHostController
+                        )
                     }
                     composable(
                         route = NavGroup.PHONE

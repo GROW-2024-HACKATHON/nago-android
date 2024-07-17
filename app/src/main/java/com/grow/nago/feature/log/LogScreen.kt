@@ -1,7 +1,9 @@
 package com.grow.nago.feature.log
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,35 +34,43 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.grow.nago.R
+import com.grow.nago.remote.response.ReportResponse
 import com.grow.nago.ui.animation.bounceClick
+import com.grow.nago.ui.animation.bounceLongClick
 import com.grow.nago.ui.component.DropShadowType
 import com.grow.nago.ui.component.dropShadow
 import com.grow.nago.ui.theme.Black
 import com.grow.nago.ui.theme.Gray600
+import com.grow.nago.ui.theme.Red300
 import com.grow.nago.ui.theme.White
 import com.grow.nago.ui.theme.body2
 import com.grow.nago.ui.theme.subtitle1
+import com.grow.nago.ui.theme.subtitle2
 import com.grow.nago.ui.theme.subtitle3
 import com.grow.nago.ui.utiles.CollectAsSideEffect
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
-@Preview
 @Composable
 fun LogScreen(
     viewModel: LogViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-//    navController: NavController
+    navController: NavController
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     var isRefresh by remember { mutableStateOf(false) }
+    var targetItem: ReportResponse? by remember { mutableStateOf(null) }
+    var isShowDialog by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val pullRefreshState = rememberPullRefreshState(
@@ -71,11 +81,57 @@ fun LogScreen(
         }
     )
 
+    if (isShowDialog) {
+        Dialog(
+            onDismissRequest = {
+                isShowDialog = false
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(
+                        color = White,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(46.dp)
+                        .bounceClick(
+                            onClick = {
+                                isShowDialog = false
+                                viewModel.removeReport(targetItem!!.id)
+                                targetItem = null
+                            }
+                        )
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        text = "삭제하기",
+                        color = Red300,
+                        style = subtitle2
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+    }
+
     viewModel.sideEffect.CollectAsSideEffect {
         when (it) {
             is LogSideEffect.SuccessLoad -> {
                 coroutineScope.launch {
                     isRefresh = false
+                }
+            }
+            is LogSideEffect.SuccessDelete -> {
+                coroutineScope.launch {
+                    Toast.makeText(context, "정상적으로 삭제되었습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -111,7 +167,17 @@ fun LogScreen(
                             date = "${it.createdAt[0]}.${it.createdAt[1]}.${it.createdAt[2]}",
                             category = it.small,
                             image = it.firstImage,
-                            onClick = {},
+                            onClick = {
+
+                            },
+                            onLongClick = {
+                                targetItem = it
+                                isShowDialog = true
+                            },
+                            onOptionClick = {
+                                targetItem = it
+                                isShowDialog = true
+                            }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -133,10 +199,16 @@ private fun LogCard(
     date: String,
     image: String,
     category: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onOptionClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier.bounceClick(onClick)
+        modifier = Modifier
+            .bounceLongClick(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
     ) {
         Row(
             modifier = modifier
@@ -192,7 +264,10 @@ private fun LogCard(
             Image(
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .size(24.dp),
+                    .size(24.dp)
+                    .bounceClick(
+                        onClick = onOptionClick
+                    ),
                 painter = painterResource(id = R.drawable.ic_normal_detail_vertical),
                 contentDescription = null
             )
