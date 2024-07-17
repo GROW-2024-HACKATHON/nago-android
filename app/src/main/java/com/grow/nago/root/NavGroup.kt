@@ -11,4 +11,5 @@ object NavGroup {
     const val EMAIL = "email/{phone}/{name}"
 
     const val CAMERA = "camera"
+    const val ONBOARD = "onboard"
 }

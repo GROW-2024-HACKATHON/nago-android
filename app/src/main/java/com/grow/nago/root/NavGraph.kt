@@ -40,6 +40,7 @@ import com.grow.nago.feature.auth.PhoneNumberScreen
 import com.grow.nago.feature.camera.CameraScreen
 import com.grow.nago.feature.home.HomeScreen
 import com.grow.nago.feature.log.LogScreen
+import com.grow.nago.feature.onboard.OnBoardScreen
 import com.grow.nago.local.sharedpreferences.NagoSharedPreferences
 import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.component.DropShadowType
@@ -131,7 +132,7 @@ fun NavGraph(){
                 NavHost(
                     modifier = Modifier.padding(it),
                     navController = navHostController,
-                    startDestination = if (isLogin) NavGroup.LOG else NavGroup.PHONE
+                    startDestination = if (isLogin) NavGroup.LOG else NavGroup.ONBOARD
                 ) {
                     composable(NavGroup.LOGIN) {
                         Greeting(name = "test")
@@ -204,6 +205,15 @@ fun NavGraph(){
                     }
                     composable(NavGroup.CAMERA) {
                         CameraScreen(
+                            navController = navHostController,
+                            navVisibleChange = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
+
+                    composable(NavGroup.ONBOARD) {
+                        OnBoardScreen(
                             navController = navHostController,
                             navVisibleChange = {
                                 isShowNavBar = it
