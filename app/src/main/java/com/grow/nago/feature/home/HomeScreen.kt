@@ -29,7 +29,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.grow.nago.R
-import com.grow.nago.feature.detail.DetailScreen
 import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.component.DropShadowType
 import com.grow.nago.ui.component.NagoTextField
@@ -55,7 +54,6 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        DetailScreen()
         Row(
             modifier = Modifier
                 .align(Alignment.TopStart)

@@ -17,7 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -34,8 +37,10 @@ import com.grow.nago.R
 import com.grow.nago.feature.auth.EmailScreen
 import com.grow.nago.feature.auth.NameScreen
 import com.grow.nago.feature.auth.PhoneNumberScreen
+import com.grow.nago.feature.camera.CameraScreen
 import com.grow.nago.feature.home.HomeScreen
 import com.grow.nago.feature.log.LogScreen
+import com.grow.nago.local.sharedpreferences.NagoSharedPreferences
 import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.component.DropShadowType
 import com.grow.nago.ui.component.dropShadow
@@ -52,7 +57,13 @@ fun NavGraph(){
     val navHostController = rememberNavController()
     val backstackEntry by navHostController.currentBackStackEntryAsState()
     val selectRoute = backstackEntry?.destination?.route
+    var isShowNavBar by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
+    var isLogin: Boolean? by remember { mutableStateOf(null) }
 
+    LaunchedEffect(key1 = true) {
+        isLogin = NagoSharedPreferences.getNagoSharedPreferences().myName.isNotEmpty()
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -60,114 +71,146 @@ fun NavGraph(){
     ) {
         Scaffold(
             bottomBar = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .dropShadow(DropShadowType.EvBlack3)
-                        .background(White)
-                ) {
-                    NavCard(
+                if (isShowNavBar) {
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .bounceClick(
-                                onClick = {
-                                    navHostController.navigate(NavGroup.LOG) {
-                                        popUpTo(navHostController.graph.findStartDestination().id) {
-                                            saveState = true
+                            .fillMaxWidth()
+                            .dropShadow(DropShadowType.EvBlack3)
+                            .background(White)
+                    ) {
+                        NavCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .bounceClick(
+                                    onClick = {
+                                        navHostController.navigate(NavGroup.LOG) {
+                                            popUpTo(navHostController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
                                         }
-                                        launchSingleTop = true
-                                        restoreState = true
                                     }
-                                }
-                            ),
-                        resId = R.drawable.ic_normal_book,
-                        text = "기록",
-                        isSelected = selectRoute == NavGroup.LOG
-                    )
+                                ),
+                            resId = R.drawable.ic_normal_book,
+                            text = "기록",
+                            isSelected = selectRoute == NavGroup.LOG
+                        )
 
-                    Image(
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically)
-                            .bounceClick(
-                                onClick = {}
-                            ),
-                        painter = painterResource(id = R.drawable.ic_normal_plus),
-                        contentDescription = null,
-                        colorFilter = ColorFilter.tint(Gray400)
-                    )
+                        Image(
+                            modifier = Modifier
+                                .weight(1f)
+                                .align(Alignment.CenterVertically)
+                                .bounceClick(
+                                    onClick = {
+                                        navHostController.navigate(NavGroup.CAMERA)
+                                    }
+                                ),
+                            painter = painterResource(id = R.drawable.ic_normal_plus),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(Gray400)
+                        )
 
-                    NavCard(
-                        modifier = Modifier
-                            .weight(1f)
-                            .bounceClick(
-                                onClick = {
-                                }
-                            ),
-                        resId = R.drawable.ic_normal_setting,
-                        text = "설정",
-                        isSelected = selectRoute == "setting"
-                    )
+                        NavCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .bounceClick(
+                                    onClick = {
+                                    }
+                                ),
+                            resId = R.drawable.ic_normal_setting,
+                            text = "설정",
+                            isSelected = selectRoute == "setting"
+                        )
+
+                    }
                 }
             }
         ) {
-            NavHost(
-                modifier = Modifier.padding(it),
-                navController = navHostController,
-                startDestination = NavGroup.LOGIN
-            ) {
-                composable(NavGroup.LOGIN) {
-                    Greeting(name = "test")
-                    LaunchedEffect(key1 = true) {
-                        navHostController.navigate("test/qwewqqwe")
+            isLogin?.let { isLogin ->
+                NavHost(
+                    modifier = Modifier.padding(it),
+                    navController = navHostController,
+                    startDestination = if (isLogin) NavGroup.LOG else NavGroup.PHONE
+                ) {
+                    composable(NavGroup.LOGIN) {
+                        Greeting(name = "test")
+                        LaunchedEffect(key1 = true) {
+                            navHostController.navigate("test/qwewqqwe")
+                        }
                     }
-                }
-                composable(
-                    route = "test/{qwer}",
-                    arguments = listOf(
-                        navArgument("qwer") { NavType.StringType }
-                    )
-                ) {
-                    navHostController.navigate(NavGroup.PHONE)
-                }
+                    composable(
+                        route = "test/{qwer}",
+                        arguments = listOf(
+                            navArgument("qwer") { NavType.StringType }
+                        )
+                    ) {
+                        navHostController.navigate(NavGroup.PHONE)
+                    }
 
-                composable(
-                    route = NavGroup.HOME
-                ) {
-                    HomeScreen()
-                }
+                    composable(
+                        route = NavGroup.HOME
+                    ) {
+                        HomeScreen()
+                    }
 
-                composable(
-                    route = NavGroup.LOG
-                ) {
-                    LogScreen()
-                }
-                composable(
-                    route = NavGroup.PHONE
-                ){
-                    PhoneNumberScreen(
-                        navController = navHostController
-                    )
-                }
-                composable(
-                    route = NavGroup.NAME,
-                    arguments = listOf(
-                        navArgument("phone") { NavType.StringType }
-                )){
-                    val phoneNum =  it.arguments?.getString("phone")?: ""
-                    NameScreen(navHostController,phoneNum)
-                }
+                    composable(
+                        route = NavGroup.LOG
+                    ) {
+                        LogScreen()
+                    }
+                    composable(
+                        route = NavGroup.PHONE
+                    ){
+                        PhoneNumberScreen(
+                            navController = navHostController,
+                            navBottomVisible = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
+                    composable(
+                        route = NavGroup.NAME,
+                        arguments = listOf(
+                            navArgument("phone") { NavType.StringType }
+                        )){
+                        val phoneNum =  it.arguments?.getString("phone")?: ""
+                        NameScreen(
+                            navController = navHostController,
+                            phoneNum = phoneNum,
+                            navBottomVisible = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
 
-                composable(
-                    route = NavGroup.EMAIL,
-                    arguments =listOf(
-                        navArgument("phone") { NavType.StringType},
-                        navArgument("name") { NavType.StringType}
-                    )
-                ){
-                    val phoneNum =  it.arguments?.getString("phone")?: ""
-                    val name = it.arguments?.getString("name")?: ""
-                    EmailScreen(navHostController,phoneNum,name)
+                    composable(
+                        route = NavGroup.EMAIL,
+                        arguments =listOf(
+                            navArgument("phone") { NavType.StringType},
+                            navArgument("name") { NavType.StringType}
+                        )
+                    ){
+                        val phoneNum =  it.arguments?.getString("phone")?: ""
+                        val name = it.arguments?.getString("name")?: ""
+                        EmailScreen(
+                            navController = navHostController,
+                            phoneNum = phoneNum,
+                            wasName = name,
+                            navBottomVisible = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
+                    composable(NavGroup.CAMERA) {
+                        CameraScreen(
+                            navController = navHostController,
+                            navVisibleChange = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
+
                 }
             }
         }

@@ -29,28 +29,24 @@ import com.grow.nago.ui.theme.Gray400
 import com.grow.nago.ui.theme.title1
 
 @Composable
-fun NameScreen(navController: NavController, phoneNum: String) {
+fun NameScreen(
+    navBottomVisible: (Boolean) -> Unit,
+    navController: NavController,
+    phoneNum: String
+) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     var nameText by remember {
         mutableStateOf("")
+    }
+    LaunchedEffect(key1 = true) {
+        navBottomVisible(false)
     }
     Column {
         Text(
             modifier = Modifier.padding(top = 50.dp, start = 18.dp, bottom = 20.dp),
             text = "이름을 입력해주세요",
             style = title1
-        )
-
-        NagoTextField(
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 15.dp),
-            value = phoneNum,
-
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = { phoneNum },
-            hint = "전화번호를 입력해주세요"
         )
         NagoTextField(
             modifier = Modifier

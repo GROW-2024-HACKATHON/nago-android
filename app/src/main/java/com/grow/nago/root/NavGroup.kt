@@ -9,4 +9,6 @@ object NavGroup {
     const val PHONE = "phone"
     const val NAME = "name/{phone}"
     const val EMAIL = "email/{phone}/{name}"
+
+    const val CAMERA = "camera"
 }
