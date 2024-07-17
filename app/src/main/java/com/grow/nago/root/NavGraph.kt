@@ -136,7 +136,7 @@ fun NavGraph(){
             NavHost(
                 modifier = Modifier.padding(it),
                 navController = navHostController,
-                startDestination = NavGroup.LOGIN
+                startDestination = NavGroup.LOG
             ) {
                 composable(NavGroup.LOGIN) {
                     Greeting(name = "test")
