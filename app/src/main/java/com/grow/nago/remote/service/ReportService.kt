@@ -44,6 +44,11 @@ interface ReportService {
         @Query("phone") phone: String,
     ): BaseResponse<List<ReportResponse>>
 
+    @GET("/report/get/{id}")
+    suspend fun getReport(
+        @Path("id") id: Int,
+    ): BaseResponse<ReportResponse>
+
     @DELETE("/report/del/{id}")
     suspend fun deleteReport(
         @Path("id") id: Int,

@@ -3,7 +3,7 @@ package com.grow.nago.feature.camera
 import com.grow.nago.remote.response.ReportResponse
 
 data class CameraUiState(
-    val reportResponse: ReportResponse = ReportResponse(0, "", null, "", "", "", "", "", "", "", "", "", "", listOf())
+    val reportResponse: ReportResponse = ReportResponse(0, "", null, "", "", "", "", "", "", "", "", "", "", listOf(), null)
 )
 
 sealed interface CameraSideEffect {

@@ -12,4 +12,5 @@ object NavGroup {
 
     const val CAMERA = "camera"
     const val ONBOARD = "onboard"
+    const val LOG_DETAIL = "logdetail/{id}"
 }

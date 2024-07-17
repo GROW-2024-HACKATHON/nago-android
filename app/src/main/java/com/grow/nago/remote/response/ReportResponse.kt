@@ -15,4 +15,5 @@ data class ReportResponse(
     val lng: String?,
     val address: String?,
     val createdAt: List<Int>,
+    val type: String?
 )

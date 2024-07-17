@@ -40,6 +40,7 @@ import com.grow.nago.feature.auth.PhoneNumberScreen
 import com.grow.nago.feature.camera.CameraScreen
 import com.grow.nago.feature.home.HomeScreen
 import com.grow.nago.feature.log.LogScreen
+import com.grow.nago.feature.logdetail.LogDetailScreen
 import com.grow.nago.feature.onboard.OnBoardScreen
 import com.grow.nago.local.sharedpreferences.NagoSharedPreferences
 import com.grow.nago.ui.animation.bounceClick
@@ -220,6 +221,19 @@ fun NavGraph(){
                             navVisibleChange = {
                                 isShowNavBar = it
                             }
+                        )
+                    }
+
+                    composable(
+                        route = NavGroup.LOG_DETAIL,
+                        arguments = listOf(
+                            navArgument("id") { NavType.StringType }
+                        )
+                    ) {
+                        val id = it.arguments?.getString("id")?.toInt()?: 0
+                        LogDetailScreen(
+                            id = id,
+                            navController = navHostController
                         )
                     }
 

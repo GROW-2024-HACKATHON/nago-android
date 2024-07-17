@@ -45,6 +45,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.grow.nago.R
 import com.grow.nago.remote.response.ReportResponse
+import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.animation.bounceLongClick
 import com.grow.nago.ui.component.DropShadowType
@@ -168,7 +169,7 @@ fun LogScreen(
                             category = it.small,
                             image = it.firstImage,
                             onClick = {
-
+                                navController.navigate(NavGroup.LOG_DETAIL.replace("{id}", it.id.toString()))
                             },
                             onLongClick = {
                                 targetItem = it
