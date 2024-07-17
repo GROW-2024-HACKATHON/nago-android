@@ -36,7 +36,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +54,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
@@ -68,6 +71,7 @@ import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.theme.Black
 import com.grow.nago.ui.theme.Orange300
 import com.grow.nago.ui.theme.White
+import com.grow.nago.ui.theme.subtitle1
 import com.grow.nago.ui.theme.subtitle2
 import com.grow.nago.ui.theme.subtitle3
 import kotlinx.coroutines.delay
@@ -249,27 +253,31 @@ fun CameraScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .bounceClick(
-                    onClick = {
-                        coroutineScope.launch {
-                            Log.d(TAG, "CameraScreen: log $nowPage")
-//                            camImage = null
-                            nowPage = 2
-                        }
-                    }
-                ),
+                .height(44.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            Text(
+            Box(
                 modifier = Modifier
-                    .padding(end = 24.dp)
-                    .size(50.dp),
-                text = "확인",
-                color = Black,
-                style = subtitle3,
-            )
+                    .height(44.dp)
+                    .width(52.dp)
+                    .bounceClick(
+                        onClick = {
+                            coroutineScope.launch {
+                                Log.d(TAG, "CameraScreen: log $nowPage")
+                                nowPage = 2
+                            }
+                        }
+                    )
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "확인",
+                    color = Black,
+                    style = subtitle3,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
         Image(
             modifier = Modifier.fillMaxSize(),
@@ -286,9 +294,64 @@ fun CameraScreen(
         enter = fadeIn(),
         exit = fadeOut()
     ) {
+        LaunchedEffect(key1 = true) {
+            delay(4000)
+            nowPage = 3
+        }
         LoadingScreen()
     }
 
+    AnimatedVisibility(
+        visible = nowPage == 3,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        CountScreen(
+            onCountExit = {
+                nowPage = 4
+            }
+        )
+    }
+    
+
+}
+
+@Composable
+fun CountScreen(
+    onCountExit: () -> Unit
+) {
+    var time by remember { mutableStateOf(60) }
+    LaunchedEffect(key1 = true) {
+        while (true) {
+            delay(1000)
+            time -= 1
+            if (time <= 0) {
+                onCountExit()
+                break
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(it)
+                .fillMaxSize()
+                .background(androidx.compose.ui.graphics.Color(0xFF2B2B2B))
+        ) {
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                text = "${time}초\n뒤에 다시 촬영해주세요",
+                color = White,
+                style = subtitle1,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 }
 
 @Composable
