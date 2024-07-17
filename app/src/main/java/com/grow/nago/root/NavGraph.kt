@@ -193,6 +193,7 @@ fun NavGraph(){
                 }
                 composable(NavGroup.CAMERA) {
                     CameraScreen(
+                        navController = navHostController,
                         navVisibleChange = {
                             isShowNavBar = it
                         }

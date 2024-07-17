@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
@@ -43,6 +42,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,16 +55,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -72,6 +76,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -82,7 +87,9 @@ import com.grow.nago.ui.component.NagoButton
 import com.grow.nago.ui.component.NagoButtonSelectMenu
 import com.grow.nago.ui.component.NagoTextField
 import com.grow.nago.ui.theme.Black
+import com.grow.nago.ui.theme.Gray100
 import com.grow.nago.ui.theme.Orange300
+import com.grow.nago.ui.theme.Red300
 import com.grow.nago.ui.theme.White
 import com.grow.nago.ui.theme.subtitle1
 import com.grow.nago.ui.theme.subtitle2
@@ -103,6 +110,7 @@ const val TAG = "TAG"
 @Composable
 fun CameraScreen(
     viewModel: CameraViewModel = viewModel(),
+    navController: NavController,
     navVisibleChange: (Boolean) -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -127,6 +135,14 @@ fun CameraScreen(
             }
             is CameraSideEffect.SuccessUpload -> {
                 nowPage = 6
+            }
+            is CameraSideEffect.Error -> {
+                coroutineScope.launch {
+                    Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+            is CameraSideEffect.FinishReport -> {
+                navController.popBackStack()
             }
         }
     }
@@ -197,7 +213,7 @@ fun CameraScreen(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
-                        setBackgroundColor(Color.BLACK)
+                        setBackgroundColor(android.graphics.Color.BLACK)
                         scaleType = PreviewView.ScaleType.FILL_START
                     }.also { previewView ->
                         previewView.controller = cameraController
@@ -349,7 +365,7 @@ fun CameraScreen(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
-                        setBackgroundColor(Color.BLACK)
+                        setBackgroundColor(android.graphics.Color.BLACK)
                         scaleType = PreviewView.ScaleType.FILL_START
                     }.also { previewView ->
                         previewView.controller = cameraController
@@ -486,7 +502,7 @@ fun CameraScreen(
             firstImage = camImage?: context.getDrawable(R.drawable.test)!!.toBitmap(),
             secondImage = camSecondImage,
             onClickUpload = { classification, category, title, content, firstImage, secondImage ->
-
+//                viewModel.finishReport()
             }
         )
     }
@@ -511,6 +527,7 @@ fun DeclarationScreen(
         secondImage: Bitmap?,
     ) -> Unit
 ) {
+    var isShowDialog by remember { mutableStateOf(false) }
     var categoryText by remember { mutableStateOf(category) }
     var classificationText by remember { mutableStateOf(classification) }
     var titleText by remember { mutableStateOf(title) }
@@ -528,6 +545,64 @@ fun DeclarationScreen(
             categoryText = ""
         }
     }
+
+    if (isShowDialog) {
+        Dialog(
+            onDismissRequest = { isShowDialog = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
+                    .background(
+                        color = White,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                Spacer(modifier = Modifier.height(36.dp))
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    text = "정말로 신고하시겠어요?",
+                    style = subtitle1,
+                    color = Black
+                )
+                Spacer(modifier = Modifier.height(22.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    CameraDialogButton(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(45.dp),
+                        text = "취소하기",
+                        onClick = {
+                            isShowDialog = false
+                        },
+                        textColor = Black,
+                        backgroundColor = Gray100
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    CameraDialogButton(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(45.dp),
+                        text = "신고하기",
+                        onClick = {
+                            onClickUpload(classification, category, title, content, firstImage, secondImage)
+                        },
+                        textColor = White,
+                        backgroundColor = Red300
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
             Column {
@@ -536,9 +611,9 @@ fun DeclarationScreen(
                         .fillMaxWidth()
                         .height(56.dp)
                         .padding(horizontal = 20.dp),
-                    text = "업로드",
+                    text = "신고하기",
                     onClick = {
-                        onClickUpload(classification, category, title, content, firstImage, secondImage)
+                        isShowDialog = true
                     },
                     enabled = classificationText.isNotEmpty() &&
                             categoryText.isNotEmpty() &&
@@ -704,7 +779,7 @@ fun CountScreen(
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(androidx.compose.ui.graphics.Color(0xFF2B2B2B))
+                .background(Color(0xFF2B2B2B))
         ) {
             Text(
                 modifier = Modifier.align(Alignment.Center),
@@ -846,6 +921,41 @@ private fun CameraButton(
                 painter = painterResource(id = R.drawable.ic_normal_camera),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(Black)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CameraDialogButton(
+    modifier: Modifier,
+    text: String,
+    backgroundColor: Color,
+    textColor: Color,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .bounceClick(
+                onClick = onClick
+            )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    color = backgroundColor,
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Text(
+                modifier = Modifier
+                    .align(Alignment.Center),
+                text = text,
+                color = textColor,
+                style = subtitle3.copy(
+                    fontWeight = FontWeight.Bold
+                )
             )
         }
     }

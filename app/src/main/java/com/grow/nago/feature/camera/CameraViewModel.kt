@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grow.nago.remote.RetrofitBuilder
+import com.grow.nago.remote.request.ReportRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +43,27 @@ class CameraViewModel: ViewModel() {
             _sideEffect.send( if(response.data.large == "불법주정차") CameraSideEffect.SuccessParking else CameraSideEffect.SuccessUpload)
         }.onFailure {
             it.printStackTrace()
+        }
+    }
+
+    fun finishReport(lat: String, lng: String, address: String) = viewModelScope.launch(Dispatchers.IO) {
+
+        kotlin.runCatching {
+            RetrofitBuilder.reportService.reportFinish(
+                ReportRequest(
+                    id = _state.value.reportResponse.id,
+                    name = "",
+                    email = "",
+                    phone = "",
+                    lat = lat,
+                    lng = lng,
+                    address = address
+                )
+            )
+        }.onSuccess {
+            _sideEffect.send(CameraSideEffect.FinishReport)
+        }.onFailure {
+            _sideEffect.send(CameraSideEffect.Error(it))
         }
     }
 }

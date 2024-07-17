@@ -24,3 +24,6 @@ val Gray800 = Color(0xFF1D1D1D)
 val Orange100 = Color(0xFFFFEADC)
 val Orange200 = Color(0xFFFC8C41)
 val Orange300 = Color(0xFFFF6F0F)
+
+val Red100 = Color(0xFFFF5F5F)
+val Red300 = Color(0xFFFF0F0F)
