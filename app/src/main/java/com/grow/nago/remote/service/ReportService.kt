@@ -1,15 +1,19 @@
 package com.grow.nago.remote.service
 
+import com.grow.nago.remote.request.ReportGetRequest
 import com.grow.nago.remote.request.ReportRequest
 import com.grow.nago.remote.response.BaseResponse
 import com.grow.nago.remote.response.ReportResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Query
 
 interface ReportService {
 
@@ -30,4 +34,11 @@ interface ReportService {
     suspend fun reportFinish(
         @Body body: ReportRequest
     ): BaseResponse<ReportResponse>
+
+    @GET("/report/get-all")
+    suspend fun getAllReport(
+        @Query("name") name: String,
+        @Query("email") email: String,
+        @Query("phone") phone: String,
+    ): BaseResponse<List<ReportResponse>>
 }

@@ -15,16 +15,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.grow.nago.R
 import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.component.DropShadowType
@@ -39,8 +45,15 @@ import com.grow.nago.ui.theme.subtitle3
 @Preview
 @Composable
 fun LogScreen(
+    viewModel: LogViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 //    navController: NavController
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.load()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,14 +70,15 @@ fun LogScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn {
-            items(5) {
+            items(state.reportData) {
                 Column {
                     LogCard(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        title = "불법 주정차를 신고합니다.",
-                        date = "2024.07.17",
-                        category = "불법 주정차",
-                        onClick = {}
+                        title = it.title,
+                        date = "${it.createdAt[0]}.${it.createdAt[1]}.${it.createdAt[2]}",
+                        category = it.small,
+                        image = it.firstImage,
+                        onClick = {},
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -78,6 +92,7 @@ private fun LogCard(
     modifier: Modifier = Modifier,
     title: String,
     date: String,
+    image: String,
     category: String,
     onClick: () -> Unit
 ) {
@@ -97,8 +112,9 @@ private fun LogCard(
             Image(
                 modifier = Modifier
                     .size(42.dp)
-                    .align(Alignment.CenterVertically),
-                painter = painterResource(id = R.drawable.ic_launcher_background),
+                    .align(Alignment.CenterVertically)
+                    .clip(RoundedCornerShape(12.dp)),
+                painter = rememberAsyncImagePainter(model = image),
                 contentDescription = null
             )
             Spacer(modifier = Modifier.width(8.dp))

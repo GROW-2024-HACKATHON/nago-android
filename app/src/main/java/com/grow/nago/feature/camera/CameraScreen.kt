@@ -835,7 +835,7 @@ fun LoadingScreen(
     var textPage by remember { mutableStateOf(0) }
     LaunchedEffect(key1 = true) {
         (1..2).forEach { _ ->
-            delay(2000)
+            delay(3000)
             textPage += 1
         }
     }
