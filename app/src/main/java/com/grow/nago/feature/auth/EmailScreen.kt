@@ -39,7 +39,7 @@ fun EmailScreen(navController: NavController, phoneNum: String,wasName : String)
 
     Column {
         Text(
-            modifier = Modifier.padding(top = 25.dp, start = 18.dp, bottom = 20.dp),
+            modifier = Modifier.padding(top = 50.dp, start = 18.dp, bottom = 20.dp),
             text = "이메일 주소를 입력해주세요",
             style = title1
         )

@@ -37,7 +37,7 @@ fun NameScreen(navController: NavController, phoneNum: String) {
     }
     Column {
         Text(
-            modifier = Modifier.padding(top = 25.dp, start = 18.dp, bottom = 20.dp),
+            modifier = Modifier.padding(top = 50.dp, start = 18.dp, bottom = 20.dp),
             text = "이름을 입력해주세요",
             style = title1
         )

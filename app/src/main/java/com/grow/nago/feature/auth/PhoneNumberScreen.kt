@@ -47,7 +47,7 @@ fun PhoneNumberScreen(
     }
     Column {
         Text(
-            modifier = Modifier.padding(top = 25.dp, start = 18.dp, bottom = 20.dp),
+            modifier = Modifier.padding(top =50.dp, start = 18.dp, bottom = 20.dp),
             text = "전화번호를 입력해주세요",
             style = title1)
 
