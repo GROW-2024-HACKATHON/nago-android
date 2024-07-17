@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.grow.nago.Greeting
 import com.grow.nago.feature.home.HomeScreen
+import com.grow.nago.feature.log.LogScreen
 import com.grow.nago.ui.theme.White
 
 @Composable
@@ -47,6 +48,12 @@ fun NavGraph(){
                 route = NavGroup.HOME
             ) {
                 HomeScreen()
+            }
+
+            composable(
+                route = NavGroup.LOG
+            ) {
+                LogScreen()
             }
 
         }
