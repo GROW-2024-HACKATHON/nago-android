@@ -92,7 +92,7 @@ fun NagoTextField(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = Color.Transparent,
+                color = White,
                 shape = shape,
             )
             .onFocusChanged {
