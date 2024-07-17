@@ -30,10 +30,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -55,6 +59,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -69,6 +74,8 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.grow.nago.R
 import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.animation.bounceClick
+import com.grow.nago.ui.component.NagoButtonSelectMenu
+import com.grow.nago.ui.component.NagoTextField
 import com.grow.nago.ui.theme.Black
 import com.grow.nago.ui.theme.Orange300
 import com.grow.nago.ui.theme.White
@@ -96,7 +103,7 @@ fun CameraScreen(
     var camSecondImage: Bitmap? by remember { mutableStateOf(null) }
     val coroutineScope = rememberCoroutineScope()
 
-    var nowPage by remember { mutableStateOf(0) }
+    var nowPage by remember { mutableStateOf(6) }
 
     LaunchedEffect(key1 = true) {
         navVisibleChange(false)
@@ -443,16 +450,161 @@ fun CameraScreen(
         )
     }
 
+    AnimatedVisibility(
+        visible = nowPage == 6,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        DeclarationScreen(
+            classification = "분류",
+            category = "123",
+            title = "qwead",
+            content = "wekwer",
+            firstImage = camImage?: context.getDrawable(R.drawable.test)!!.toBitmap(),
+            secondImage = camSecondImage
+        )
+    }
 
 
 
+}
+@Composable
+fun DeclarationScreen(
+    classification: String,
+    category: String,
+    title: String,
+    content: String,
+    firstImage: Bitmap,
+    secondImage: Bitmap?
+) {
+    var classificationText by remember { mutableStateOf(classification) }
+    var categoryText by remember { mutableStateOf(category) }
+    var titleText by remember { mutableStateOf(title) }
+    var contentText by remember { mutableStateOf(content) }
+
+    Column(
+        modifier = Modifier.padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        DeclarationCard(
+            modifier = Modifier.fillMaxWidth(),
+            title = "분류",
+            content = {
+                NagoButtonSelectMenu(
+                    modifier = Modifier.height(48.dp),
+                    itemList = listOf(),
+                    hint = classificationText,
+                    onSelectItemListener = {
+                        classificationText = it
+                    }
+                )
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        DeclarationCard(
+            modifier = Modifier.fillMaxWidth(),
+            title = "카테고리",
+            content = {
+                NagoButtonSelectMenu(
+                    modifier = Modifier.height(48.dp),
+                    itemList = listOf(),
+                    hint = categoryText,
+                    onSelectItemListener = {
+                        categoryText = it
+                    }
+                )
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        DeclarationCard(
+            modifier = Modifier.fillMaxWidth(),
+            title = "제목",
+            content = {
+                NagoTextField(
+                    value = titleText,
+                    hint = "신고할 제목을 입력하세요",
+                    onValueChange = {
+                        titleText = it
+                    },
+                    textStyle = subtitle3
+                )
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        DeclarationCard(
+            modifier = Modifier.fillMaxWidth(),
+            title = "내용",
+            content = {
+                NagoTextField(
+                    modifier = Modifier.heightIn(min = 108.dp),
+                    value = contentText,
+                    hint = "신고할 내용을 입력하세요",
+                    onValueChange = {
+                        contentText = it
+                    },
+                    singleLine = false,
+                    textStyle = subtitle3
+                )
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        DeclarationCard(
+            modifier = Modifier.fillMaxWidth(),
+            title = if (secondImage == null) "사진" else "불법 주정차 사진 1분 전",
+            content = {
+                Image(
+                    modifier = Modifier.fillMaxWidth(),
+                    painter = BitmapPainter(
+                        image = firstImage.asImageBitmap()
+                    ),
+                    contentDescription = "촬영된 사진"
+                )
+            }
+        )
+        if (secondImage != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            DeclarationCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "불법 주정차 사진 1분 후",
+                content = {
+                    Image(
+                        modifier = Modifier.fillMaxWidth(),
+                        painter = BitmapPainter(
+                            image = secondImage.asImageBitmap()
+                        ),
+                        contentDescription = "촬영된 사진"
+                    )
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(48.dp))
+    }
+}
+
+@Composable
+private fun DeclarationCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = modifier
+    ) {
+        Text(
+            modifier = Modifier.padding(start = 4.dp),
+            text = title,
+            color = Black,
+            style = subtitle3
+        )
+        content()
+    }
 }
 
 @Composable
 fun CountScreen(
     onCountExit: () -> Unit
 ) {
-    var time by remember { mutableStateOf(10) }
+    var time by remember { mutableStateOf(1) }
     LaunchedEffect(key1 = true) {
         while (true) {
             delay(1000)
