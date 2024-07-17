@@ -31,6 +31,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.grow.nago.Greeting
 import com.grow.nago.R
+import com.grow.nago.feature.auth.NameScreen
+import com.grow.nago.feature.auth.PhoneNumberScreen
 import com.grow.nago.feature.home.HomeScreen
 import com.grow.nago.feature.log.LogScreen
 import com.grow.nago.ui.animation.bounceClick
@@ -41,6 +43,7 @@ import com.grow.nago.ui.theme.Gray500
 import com.grow.nago.ui.theme.Orange300
 import com.grow.nago.ui.theme.White
 import com.grow.nago.ui.theme.caption2
+import java.util.jar.Attributes.Name
 
 @Composable
 fun NavGraph(){
@@ -124,8 +127,7 @@ fun NavGraph(){
                         navArgument("qwer") { NavType.StringType }
                     )
                 ) {
-                    val qwer =  it.arguments?.getString("qwer")?: ""
-                    Greeting(name = qwer)
+                    navHostController.navigate(NavGroup.PHONE)
                 }
 
                 composable(
@@ -139,7 +141,32 @@ fun NavGraph(){
                 ) {
                     LogScreen()
                 }
+                composable(
+                    route = NavGroup.PHONE
+                ){
+                    PhoneNumberScreen(
+                        navController = navHostController
+                    )
+                }
+                composable(
+                    route = NavGroup.NAME,
+                    arguments = listOf(
+                        navArgument("phone") { NavType.StringType }
+                )){
+                    val phoneNum =  it.arguments?.getString("phone")?: ""
+                    NameScreen(navHostController,phoneNum)
+                }
 
+                composable(
+                    route = NavGroup.EMAIL,
+                    arguments =listOf(
+                        navArgument("phone") { NavType.StringType},
+                        navArgument("name") { NavType.StringType}
+                    )
+                ){
+                    val phone = it.arguments?.getString("phone")
+                    val name = it.arguments?.getString("name")
+                }
             }
         }
     }
