@@ -40,6 +40,7 @@ import com.grow.nago.feature.auth.PhoneNumberScreen
 import com.grow.nago.feature.camera.CameraScreen
 import com.grow.nago.feature.home.HomeScreen
 import com.grow.nago.feature.log.LogScreen
+import com.grow.nago.local.sharedpreferences.NagoSharedPreferences
 import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.component.DropShadowType
 import com.grow.nago.ui.component.dropShadow
@@ -58,7 +59,11 @@ fun NavGraph(){
     val selectRoute = backstackEntry?.destination?.route
     var isShowNavBar by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
-
+    var isLogin: Boolean? by remember { mutableStateOf(null) }
+    
+    LaunchedEffect(key1 = true) {
+        isLogin = NagoSharedPreferences.getNagoSharedPreferences().myName.isNotEmpty()
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -122,89 +127,91 @@ fun NavGraph(){
                 }
             }
         ) {
-            NavHost(
-                modifier = Modifier.padding(it),
-                navController = navHostController,
-                startDestination = NavGroup.PHONE
-            ) {
-                composable(NavGroup.LOGIN) {
-                    Greeting(name = "test")
-                    LaunchedEffect(key1 = true) {
-                        navHostController.navigate("test/qwewqqwe")
+            isLogin?.let { isLogin ->
+                NavHost(
+                    modifier = Modifier.padding(it),
+                    navController = navHostController,
+                    startDestination = if (isLogin) NavGroup.LOG else NavGroup.PHONE
+                ) {
+                    composable(NavGroup.LOGIN) {
+                        Greeting(name = "test")
+                        LaunchedEffect(key1 = true) {
+                            navHostController.navigate("test/qwewqqwe")
+                        }
                     }
-                }
-                composable(
-                    route = "test/{qwer}",
-                    arguments = listOf(
-                        navArgument("qwer") { NavType.StringType }
-                    )
-                ) {
-                    navHostController.navigate(NavGroup.PHONE)
-                }
+                    composable(
+                        route = "test/{qwer}",
+                        arguments = listOf(
+                            navArgument("qwer") { NavType.StringType }
+                        )
+                    ) {
+                        navHostController.navigate(NavGroup.PHONE)
+                    }
 
-                composable(
-                    route = NavGroup.HOME
-                ) {
-                    HomeScreen()
-                }
+                    composable(
+                        route = NavGroup.HOME
+                    ) {
+                        HomeScreen()
+                    }
 
-                composable(
-                    route = NavGroup.LOG
-                ) {
-                    LogScreen()
-                }
-                composable(
-                    route = NavGroup.PHONE
-                ){
-                    PhoneNumberScreen(
-                        navController = navHostController,
-                        navBottomVisible = {
-                            isShowNavBar = it
-                        }
-                    )
-                }
-                composable(
-                    route = NavGroup.NAME,
-                    arguments = listOf(
-                        navArgument("phone") { NavType.StringType }
-                )){
-                    val phoneNum =  it.arguments?.getString("phone")?: ""
-                    NameScreen(
-                        navController = navHostController,
-                        phoneNum = phoneNum,
-                        navBottomVisible = {
-                            isShowNavBar = it
-                        }
-                    )
-                }
+                    composable(
+                        route = NavGroup.LOG
+                    ) {
+                        LogScreen()
+                    }
+                    composable(
+                        route = NavGroup.PHONE
+                    ){
+                        PhoneNumberScreen(
+                            navController = navHostController,
+                            navBottomVisible = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
+                    composable(
+                        route = NavGroup.NAME,
+                        arguments = listOf(
+                            navArgument("phone") { NavType.StringType }
+                        )){
+                        val phoneNum =  it.arguments?.getString("phone")?: ""
+                        NameScreen(
+                            navController = navHostController,
+                            phoneNum = phoneNum,
+                            navBottomVisible = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
 
-                composable(
-                    route = NavGroup.EMAIL,
-                    arguments =listOf(
-                        navArgument("phone") { NavType.StringType},
-                        navArgument("name") { NavType.StringType}
-                    )
-                ){
-                    val phoneNum =  it.arguments?.getString("phone")?: ""
-                    val name = it.arguments?.getString("name")?: ""
-                    EmailScreen(
-                        navController = navHostController,
-                        phoneNum = phoneNum,
-                        wasName = name,
-                        navBottomVisible = {
-                            isShowNavBar = it
-                        }
-                    )
-                }
-                composable(NavGroup.CAMERA) {
-                    CameraScreen(
-                        navController = navHostController,
-                        navVisibleChange = {
-                            isShowNavBar = it
-                        }
-                    )
-                }
+                    composable(
+                        route = NavGroup.EMAIL,
+                        arguments =listOf(
+                            navArgument("phone") { NavType.StringType},
+                            navArgument("name") { NavType.StringType}
+                        )
+                    ){
+                        val phoneNum =  it.arguments?.getString("phone")?: ""
+                        val name = it.arguments?.getString("name")?: ""
+                        EmailScreen(
+                            navController = navHostController,
+                            phoneNum = phoneNum,
+                            wasName = name,
+                            navBottomVisible = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
+                    composable(NavGroup.CAMERA) {
+                        CameraScreen(
+                            navController = navHostController,
+                            navVisibleChange = {
+                                isShowNavBar = it
+                            }
+                        )
+                    }
 
+                }
             }
         }
     }
