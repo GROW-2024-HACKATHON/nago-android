@@ -168,7 +168,10 @@ fun NavGraph(){
                     route = NavGroup.PHONE
                 ){
                     PhoneNumberScreen(
-                        navController = navHostController
+                        navController = navHostController,
+                        navBottomVisible = {
+                            isShowNavBar = it
+                        }
                     )
                 }
                 composable(
@@ -177,7 +180,13 @@ fun NavGraph(){
                         navArgument("phone") { NavType.StringType }
                 )){
                     val phoneNum =  it.arguments?.getString("phone")?: ""
-                    NameScreen(navHostController,phoneNum)
+                    NameScreen(
+                        navController = navHostController,
+                        phoneNum = phoneNum,
+                        navBottomVisible = {
+                            isShowNavBar = it
+                        }
+                    )
                 }
 
                 composable(
@@ -192,7 +201,10 @@ fun NavGraph(){
                     EmailScreen(
                         navController = navHostController,
                         phoneNum = phoneNum,
-                        wasName = name
+                        wasName = name,
+                        navBottomVisible = {
+                            isShowNavBar = it
+                        }
                     )
                 }
                 composable(NavGroup.CAMERA) {

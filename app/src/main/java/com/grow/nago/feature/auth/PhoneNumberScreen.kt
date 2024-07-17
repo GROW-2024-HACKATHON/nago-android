@@ -36,7 +36,8 @@ import com.grow.nago.ui.theme.title1
 
 @Composable
 fun PhoneNumberScreen(
-    navController: NavController
+    navController: NavController,
+    navBottomVisible: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
@@ -44,6 +45,9 @@ fun PhoneNumberScreen(
 
     var phoneNumber by remember {
         mutableStateOf("")
+    }
+    LaunchedEffect(key1 = true) {
+        navBottomVisible(false)
     }
     Column {
         Text(

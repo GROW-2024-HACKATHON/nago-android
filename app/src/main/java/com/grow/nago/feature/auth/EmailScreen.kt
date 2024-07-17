@@ -22,16 +22,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.component.NagoButton
 import com.grow.nago.ui.component.NagoTextField
 import com.grow.nago.ui.theme.title1
 
 @Composable
-fun EmailScreen(viewModel: EmailViewModel = viewModel(), navController: NavController, phoneNum: String, wasName : String) {
+fun EmailScreen(
+    viewModel: EmailViewModel = viewModel(),
+    navBottomVisible: (Boolean) -> Unit,
+    navController: NavController,
+    phoneNum: String,
+    wasName : String
+) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     var emailText by remember {
         mutableStateOf("")
+    }
+
+    LaunchedEffect(key1 = true) {
+        navBottomVisible(false)
     }
 
     Column {
@@ -41,24 +52,6 @@ fun EmailScreen(viewModel: EmailViewModel = viewModel(), navController: NavContr
             style = title1
         )
 
-        NagoTextField(
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 15.dp),
-            value = phoneNum,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = { phoneNum },
-            hint = "전화번호를 입력해주세요"
-        )
-        NagoTextField(
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 15.dp),
-            value = wasName,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            onValueChange = { wasName},
-            hint = "이름을 입력해주세요"
-        )
         NagoTextField(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
@@ -81,8 +74,12 @@ fun EmailScreen(viewModel: EmailViewModel = viewModel(), navController: NavContr
             enabled = emailText.isNotEmpty(),
             onClick = {
                 if (emailText.isNotEmpty()) {
-                    Toast.makeText(context,"${phoneNum} ~ ${wasName} ~ ${emailText}", Toast.LENGTH_SHORT).show()
                     viewModel.saveData(phoneNum, emailText, wasName)
+                    navBottomVisible(true)
+                    while (navController.popBackStack()) {
+
+                    }
+                    navController.navigate(NavGroup.LOG)
                 }
                 else{
                     Toast.makeText(context,"이름을 입력해주세요.", Toast.LENGTH_SHORT).show()
