@@ -82,6 +82,10 @@ import com.grow.nago.ui.theme.White
 import com.grow.nago.ui.theme.subtitle1
 import com.grow.nago.ui.theme.subtitle2
 import com.grow.nago.ui.theme.subtitle3
+import com.grow.nago.ui.utiles.drive
+import com.grow.nago.ui.utiles.life
+import com.grow.nago.ui.utiles.parking
+import com.grow.nago.ui.utiles.safety
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
@@ -482,6 +486,19 @@ fun DeclarationScreen(
     var titleText by remember { mutableStateOf(title) }
     var contentText by remember { mutableStateOf(content) }
 
+    LaunchedEffect(key1 = classificationText) {
+        val isSuccess = when {
+            classificationText == "안전신고" && categoryText in safety -> true
+            classificationText == "생활 불편 신고" && categoryText in life -> true
+            classificationText == "자동차 · 교통위반" && categoryText in drive -> true
+            classificationText == "불법주정차" && categoryText in parking -> true
+            else -> false
+        }
+        if (isSuccess.not()) {
+            categoryText = ""
+        }
+    }
+
     Column(
         modifier = Modifier.padding(horizontal = 20.dp)
     ) {
@@ -492,7 +509,8 @@ fun DeclarationScreen(
             content = {
                 NagoButtonSelectMenu(
                     modifier = Modifier.height(48.dp),
-                    itemList = listOf(),
+                    text = classificationText,
+                    itemList = listOf("안전신고", "생활 불편 신고", "자동차 · 교통위반", "불법주정차"),
                     hint = classificationText,
                     onSelectItemListener = {
                         classificationText = it
@@ -507,7 +525,14 @@ fun DeclarationScreen(
             content = {
                 NagoButtonSelectMenu(
                     modifier = Modifier.height(48.dp),
-                    itemList = listOf(),
+                    text = categoryText,
+                    itemList = when (classificationText) {
+                        "안전신고" -> safety
+                        "생활 불편 신고" -> life
+                        "자동차 · 교통위반" -> drive
+                        "불법주정차" -> parking
+                        else -> listOf()
+                    },
                     hint = categoryText,
                     onSelectItemListener = {
                         categoryText = it

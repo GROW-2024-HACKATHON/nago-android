@@ -68,6 +68,7 @@ import com.grow.nago.ui.theme.subtitle3
 @Composable
 fun NagoButtonSelectMenu(
     itemList: List<String>,
+    text: String = "",
     modifier: Modifier = Modifier,
     hint: String = "",
     onSelectItemListener: (String) -> Unit
@@ -75,7 +76,6 @@ fun NagoButtonSelectMenu(
     // 1. DropDownMenu의 펼쳐짐 상태 정의
     var isDropDownMenuExpanded by remember { mutableStateOf(false) }
     var buttonSize by remember { mutableStateOf(Size.Zero) }
-    var buttonText by remember { mutableStateOf(hint) }
     val focusRequester = remember { FocusRequester() }
     Column {
         Button(
@@ -100,7 +100,7 @@ fun NagoButtonSelectMenu(
                         .padding(
                             start = 0.dp
                         ),
-                    text = buttonText,
+                    text = text,
                     color = Black,
                     style = subtitle3
                 )
@@ -141,7 +141,6 @@ fun NagoButtonSelectMenu(
                         )
                     },
                     onClick = {
-                        buttonText = label
                         onSelectItemListener(label)
                         isDropDownMenuExpanded = false
                     }
@@ -158,8 +157,9 @@ private fun Preview() {
     NagoTheme {
         NagoButtonSelectMenu(
             listOf("test", "test1", "test2"),
+            "",
             Modifier.height(48.dp),
-            "분류를 선택하세요",
+            "",
             {}
         )
     }
