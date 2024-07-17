@@ -49,6 +49,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
@@ -92,6 +93,7 @@ fun CameraScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraController = remember { LifecycleCameraController(context) }
     var camImage: Bitmap? by remember { mutableStateOf(null) }
+    var camSecondImage: Bitmap? by remember { mutableStateOf(null) }
     val coroutineScope = rememberCoroutineScope()
 
     var nowPage by remember { mutableStateOf(0) }
@@ -170,78 +172,68 @@ fun CameraScreen(
                     }
                 }
             )
-            Image(
+            CameraButton(
                 modifier = Modifier
-                    .size(44.dp)
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 10.dp)
-                    .background(
-                        color = White,
-                        shape = CircleShape
-                    )
-                    .bounceClick(
-                        onClick = {
-                            coroutineScope.launch {
-                                try {
-                                    Log.d(
-                                        TAG,
-                                        "CameraScreen: ${cameraController.isImageCaptureEnabled}"
-                                    )
-                                    if (cameraController.isImageCaptureEnabled) {
-                                        Log.d(TAG, "CamScreen: qwewqeqwewqe 호출됨")
-                                        val mainExecutor = ContextCompat.getMainExecutor(context)
-                                        cameraController.takePicture(
-                                            mainExecutor,
-                                            @ExperimentalGetImage object :
-                                                ImageCapture.OnImageCapturedCallback() {
-                                                override fun onCaptureSuccess(image: ImageProxy) {
-                                                    Log.d(
-                                                        "LOG",
-                                                        "onCaptureSuccess: ${image.height} ${image.width}"
-                                                    )
-                                                    super.onCaptureSuccess(image)
-                                                    Log.d(
-                                                        TAG,
-                                                        "onCaptureSuccess: ${image.imageInfo.rotationDegrees}"
-                                                    )
-                                                    val bitmap = imageProxyToBitmap(image)!!
-                                                    val rotateMatrix = Matrix()
-                                                    rotateMatrix.postRotate(image.imageInfo.rotationDegrees.toFloat())
-                                                    nowPage = 1
-                                                    camImage = Bitmap.createBitmap(
-                                                        bitmap,
-                                                        0,
-                                                        0,
-                                                        bitmap.width,
-                                                        bitmap.height,
-                                                        rotateMatrix,
-                                                        false
-                                                    )
-                                                    Log.d(TAG, "onCaptureSuccess: $camImage")
-                                                    //                                camViewModel.postImage(camImage)
-                                                    //                                camViewModel.nextPage()
+                    .padding(bottom = 10.dp),
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            Log.d(
+                                TAG,
+                                "CameraScreen: ${cameraController.isImageCaptureEnabled}"
+                            )
+                            if (cameraController.isImageCaptureEnabled) {
+                                Log.d(TAG, "CamScreen: qwewqeqwewqe 호출됨")
+                                val mainExecutor = ContextCompat.getMainExecutor(context)
+                                cameraController.takePicture(
+                                    mainExecutor,
+                                    @ExperimentalGetImage object :
+                                        ImageCapture.OnImageCapturedCallback() {
+                                        override fun onCaptureSuccess(image: ImageProxy) {
+                                            Log.d(
+                                                "LOG",
+                                                "onCaptureSuccess: ${image.height} ${image.width}"
+                                            )
+                                            super.onCaptureSuccess(image)
+                                            Log.d(
+                                                TAG,
+                                                "onCaptureSuccess: ${image.imageInfo.rotationDegrees}"
+                                            )
+                                            val bitmap = imageProxyToBitmap(image)!!
+                                            val rotateMatrix = Matrix()
+                                            rotateMatrix.postRotate(image.imageInfo.rotationDegrees.toFloat())
+                                            nowPage = 1
+                                            camImage = Bitmap.createBitmap(
+                                                bitmap,
+                                                0,
+                                                0,
+                                                bitmap.width,
+                                                bitmap.height,
+                                                rotateMatrix,
+                                                false
+                                            )
+                                            Log.d(TAG, "onCaptureSuccess: $camImage")
+                                            //                                camViewModel.postImage(camImage)
+                                            //                                camViewModel.nextPage()
 //                                                camViewModel.nextNowPage()
 //                                                bottomNavVisible(false)
 //                                                Log.d(TAG, "onCaptureSuccess: ${camState.textPage}")
 //                                                Log.d(TAG, "onCaptureSuccess: $textPage")
-                                                }
+                                        }
 
-                                                override fun onError(exception: ImageCaptureException) {
-                                                    super.onError(exception)
-                                                    exception.printStackTrace()
-                                                }
-                                            })
-                                    }
-                                } catch (e: java.lang.Exception) {
-                                    Log.d(TAG, "CamScreen: 알파노")
-                                }
+                                        override fun onError(exception: ImageCaptureException) {
+                                            super.onError(exception)
+                                            exception.printStackTrace()
+                                        }
+                                    })
                             }
+                        } catch (e: java.lang.Exception) {
+                            Log.d(TAG, "CamScreen: 알파노")
                         }
-                    ),
-                painter = painterResource(id = R.drawable.ic_normal_camera),
-                contentDescription = null
+                    }
+                }
             )
-
         }
     }
 
@@ -312,7 +304,147 @@ fun CameraScreen(
             }
         )
     }
-    
+
+    AnimatedVisibility(
+        visible = nowPage == 4 && camSecondImage == null,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    PreviewView(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        setBackgroundColor(Color.BLACK)
+                        scaleType = PreviewView.ScaleType.FILL_START
+                    }.also { previewView ->
+                        previewView.controller = cameraController
+                        cameraController.bindToLifecycle(lifecycleOwner)
+                    }
+                }
+            )
+            CameraButton(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 10.dp),
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            Log.d(
+                                TAG,
+                                "CameraScreen: ${cameraController.isImageCaptureEnabled}"
+                            )
+                            if (cameraController.isImageCaptureEnabled) {
+                                Log.d(TAG, "CamScreen: qwewqeqwewqe 호출됨")
+                                val mainExecutor = ContextCompat.getMainExecutor(context)
+                                cameraController.takePicture(
+                                    mainExecutor,
+                                    @ExperimentalGetImage object :
+                                        ImageCapture.OnImageCapturedCallback() {
+                                        override fun onCaptureSuccess(image: ImageProxy) {
+                                            Log.d(
+                                                "LOG",
+                                                "onCaptureSuccess: ${image.height} ${image.width}"
+                                            )
+                                            super.onCaptureSuccess(image)
+                                            Log.d(
+                                                TAG,
+                                                "onCaptureSuccess: ${image.imageInfo.rotationDegrees}"
+                                            )
+                                            val bitmap = imageProxyToBitmap(image)!!
+                                            val rotateMatrix = Matrix()
+                                            rotateMatrix.postRotate(image.imageInfo.rotationDegrees.toFloat())
+                                            nowPage = 5
+                                            camSecondImage = Bitmap.createBitmap(
+                                                bitmap,
+                                                0,
+                                                0,
+                                                bitmap.width,
+                                                bitmap.height,
+                                                rotateMatrix,
+                                                false
+                                            )
+                                            Log.d(TAG, "onCaptureSuccess: $camSecondImage")
+                                            //                                camViewModel.postImage(camImage)
+                                            //                                camViewModel.nextPage()
+//                                                camViewModel.nextNowPage()
+//                                                bottomNavVisible(false)
+//                                                Log.d(TAG, "onCaptureSuccess: ${camState.textPage}")
+//                                                Log.d(TAG, "onCaptureSuccess: $textPage")
+                                        }
+
+                                        override fun onError(exception: ImageCaptureException) {
+                                            super.onError(exception)
+                                            exception.printStackTrace()
+                                        }
+                                    })
+                            }
+                        } catch (e: java.lang.Exception) {
+                            Log.d(TAG, "CamScreen: 알파노")
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    AnimatedVisibility(
+        visible = camSecondImage != null && nowPage == 5,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp),
+        ) {
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                text = "불법 주정차",
+                color = Black,
+                style = subtitle1,
+                textAlign = TextAlign.Center
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .height(44.dp)
+                    .width(52.dp)
+                    .bounceClick(
+                        onClick = {
+                            coroutineScope.launch {
+                                Log.d(TAG, "CameraScreen: log $nowPage")
+                                nowPage = 6
+                            }
+                        }
+                    )
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "확인",
+                    color = Black,
+                    style = subtitle3,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        Image(
+            modifier = Modifier.fillMaxSize(),
+            painter = BitmapPainter(
+                image = camSecondImage?.asImageBitmap() ?: context.getDrawable(R.drawable.test)!!
+                    .toBitmap().asImageBitmap()
+            ),
+            contentDescription = "촬영된 사진"
+        )
+    }
+
+
+
 
 }
 
@@ -320,7 +452,7 @@ fun CameraScreen(
 fun CountScreen(
     onCountExit: () -> Unit
 ) {
-    var time by remember { mutableStateOf(60) }
+    var time by remember { mutableStateOf(10) }
     LaunchedEffect(key1 = true) {
         while (true) {
             delay(1000)
@@ -458,6 +590,32 @@ fun LoadingScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CameraButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Box(modifier = modifier.bounceClick(onClick)) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(
+                    color = White,
+                    shape = CircleShape
+                )
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(40.dp)
+                    .align(Alignment.Center),
+                painter = painterResource(id = R.drawable.ic_normal_camera),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(Black)
+            )
         }
     }
 }
