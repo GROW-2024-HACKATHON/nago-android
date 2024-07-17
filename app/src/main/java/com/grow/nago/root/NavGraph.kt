@@ -31,6 +31,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.grow.nago.Greeting
 import com.grow.nago.R
+import com.grow.nago.feature.auth.EmailScreen
 import com.grow.nago.feature.auth.NameScreen
 import com.grow.nago.feature.auth.PhoneNumberScreen
 import com.grow.nago.feature.home.HomeScreen
@@ -51,6 +52,7 @@ fun NavGraph(){
     val navHostController = rememberNavController()
     val backstackEntry by navHostController.currentBackStackEntryAsState()
     val selectRoute = backstackEntry?.destination?.route
+
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -100,7 +102,6 @@ fun NavGraph(){
                             .weight(1f)
                             .bounceClick(
                                 onClick = {
-
                                 }
                             ),
                         resId = R.drawable.ic_normal_setting,
@@ -164,8 +165,9 @@ fun NavGraph(){
                         navArgument("name") { NavType.StringType}
                     )
                 ){
-                    val phone = it.arguments?.getString("phone")
-                    val name = it.arguments?.getString("name")
+                    val phoneNum =  it.arguments?.getString("phone")?: ""
+                    val name = it.arguments?.getString("name")?: ""
+                    EmailScreen(navHostController,phoneNum,name)
                 }
             }
         }
