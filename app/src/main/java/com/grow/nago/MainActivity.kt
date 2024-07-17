@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.grow.nago.feature.home.HomeScreen
 import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.theme.NagoTheme
 import com.grow.nago.ui.theme.White
@@ -48,6 +49,12 @@ class MainActivity : ComponentActivity() {
                         ) {
                             val qwer =  it.arguments?.getString("qwer")?: ""
                             Greeting(name = qwer)
+                        }
+
+                        composable(
+                            route = NavGroup.HOME
+                        ) {
+                            HomeScreen()
                         }
 
                     }
