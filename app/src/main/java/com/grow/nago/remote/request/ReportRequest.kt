@@ -8,4 +8,8 @@ data class ReportRequest(
     val lat: String,
     val lng: String,
     val address: String,
+    val title: String,
+    val content: String,
+    val large: String,
+    val small: String,
 )

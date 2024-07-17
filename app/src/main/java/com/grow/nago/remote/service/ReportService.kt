@@ -18,7 +18,7 @@ interface ReportService {
         @Part image: MultipartBody.Part
     ): BaseResponse<ReportResponse>
 
-    @PATCH
+    @PATCH("/report/finish")
     suspend fun reportFinish(
         @Body body: ReportRequest
     ): BaseResponse<ReportResponse>

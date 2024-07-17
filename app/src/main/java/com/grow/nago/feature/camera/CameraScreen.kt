@@ -523,7 +523,15 @@ fun CameraScreen(
             firstImage = camImage?: context.getDrawable(R.drawable.test)!!.toBitmap(),
             secondImage = camSecondImage,
             onClickUpload = { classification, category, title, content, firstImage, secondImage ->
-//                viewModel.finishReport()
+                viewModel.finishReport(
+                    lat = latitude.toString(),
+                    lng = longitude.toString(),
+                    address = location,
+                    title = title,
+                    content = content,
+                    large = classification,
+                    small = category
+                )
             }
         )
     }

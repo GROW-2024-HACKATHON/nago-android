@@ -106,29 +106,18 @@ fun NavGraph(){
                             colorFilter = ColorFilter.tint(Gray400)
                         )
 
-                    NavCard(
-                        modifier = Modifier
-                            .weight(1f)
-                            .bounceClick(
-                                onClick = {
-                                }
-                            ),
-                        resId = R.drawable.ic_normal_setting,
-                        text = "설정",
-                        isSelected = selectRoute == "setting"
-                    )
                         NavCard(
                             modifier = Modifier
                                 .weight(1f)
                                 .bounceClick(
                                     onClick = {
-
                                     }
                                 ),
                             resId = R.drawable.ic_normal_setting,
                             text = "설정",
                             isSelected = selectRoute == "setting"
                         )
+
                     }
                 }
             }

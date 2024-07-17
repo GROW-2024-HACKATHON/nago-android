@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grow.nago.local.sharedpreferences.NagoSharedPreferences
 import com.grow.nago.remote.RetrofitBuilder
 import com.grow.nago.remote.request.ReportRequest
 import kotlinx.coroutines.Dispatchers
@@ -46,18 +47,22 @@ class CameraViewModel: ViewModel() {
         }
     }
 
-    fun finishReport(lat: String, lng: String, address: String) = viewModelScope.launch(Dispatchers.IO) {
-
+    fun finishReport(title: String, content: String, large: String, small: String, lat: String, lng: String, address: String) = viewModelScope.launch(Dispatchers.IO) {
+        val sharedPreferences = NagoSharedPreferences.getNagoSharedPreferences()
         kotlin.runCatching {
             RetrofitBuilder.reportService.reportFinish(
                 ReportRequest(
                     id = _state.value.reportResponse.id,
-                    name = "",
-                    email = "",
-                    phone = "",
+                    name = sharedPreferences.myName,
+                    email = sharedPreferences.myEmail,
+                    phone = sharedPreferences.myTel,
                     lat = lat,
                     lng = lng,
-                    address = address
+                    address = address,
+                    title = title,
+                    content = content,
+                    large = large,
+                    small = small
                 )
             )
         }.onSuccess {
