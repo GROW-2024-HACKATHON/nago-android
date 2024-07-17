@@ -8,11 +8,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.theme.NagoTheme
 import com.grow.nago.ui.theme.White
 
@@ -28,11 +32,24 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navHostController, 
-                        startDestination = "test"
+                        startDestination = NavGroup.LOGIN
                     ) {
-                        composable("test") {
+                        composable(NavGroup.LOGIN) {
                             Greeting(name = "test")
+                            LaunchedEffect(key1 = true) {
+                                navHostController.navigate("test/qwewqqwe")
+                            }
                         }
+                        composable(
+                            route = "test/{qwer}",
+                            arguments = listOf(
+                                navArgument("qwer") { NavType.StringType }
+                            )
+                        ) {
+                            val qwer =  it.arguments?.getString("qwer")?: ""
+                            Greeting(name = qwer)
+                        }
+
                     }
                 }
             }
