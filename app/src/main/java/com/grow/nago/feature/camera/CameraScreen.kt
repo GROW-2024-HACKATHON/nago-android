@@ -29,6 +29,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,8 +66,11 @@ import com.grow.nago.R
 import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.theme.Black
+import com.grow.nago.ui.theme.Orange300
 import com.grow.nago.ui.theme.White
+import com.grow.nago.ui.theme.subtitle2
 import com.grow.nago.ui.theme.subtitle3
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.Locale
@@ -86,7 +90,7 @@ fun CameraScreen(
     var camImage: Bitmap? by remember { mutableStateOf(null) }
     val coroutineScope = rememberCoroutineScope()
 
-    var nowPage = 0
+    var nowPage by remember { mutableStateOf(0) }
 
     LaunchedEffect(key1 = true) {
         navVisibleChange(false)
@@ -199,6 +203,7 @@ fun CameraScreen(
                                                     val bitmap = imageProxyToBitmap(image)!!
                                                     val rotateMatrix = Matrix()
                                                     rotateMatrix.postRotate(image.imageInfo.rotationDegrees.toFloat())
+                                                    nowPage = 1
                                                     camImage = Bitmap.createBitmap(
                                                         bitmap,
                                                         0,
@@ -208,7 +213,6 @@ fun CameraScreen(
                                                         rotateMatrix,
                                                         false
                                                     )
-                                                    nowPage = 1
                                                     Log.d(TAG, "onCaptureSuccess: $camImage")
                                                     //                                camViewModel.postImage(camImage)
                                                     //                                camViewModel.nextPage()
@@ -238,52 +242,161 @@ fun CameraScreen(
     }
 
     AnimatedVisibility(
-        visible = camImage != null,
+        visible = camImage != null && nowPage == 1,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
+                .height(50.dp)
+                .bounceClick(
+                    onClick = {
+                        coroutineScope.launch {
+                            Log.d(TAG, "CameraScreen: log $nowPage")
+//                            camImage = null
+                            nowPage = 2
+                        }
+                    }
+                ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
             Text(
                 modifier = Modifier
-                    .padding(end = 24.dp),
+                    .padding(end = 24.dp)
+                    .size(50.dp),
                 text = "확인",
                 color = Black,
                 style = subtitle3,
-//                onClick = {
-//                    Log.d(TAG, "CamScreen: rrrr $camImage")
-//                    if (camImage != null) {
-//                        camViewModel.postImage(camImage!!)
-//                        camViewModel.nextNowPage()
-//                    } else {
-//                        context.shortToast("이미지가 정상적이지 않습니다.")
-//                        navController.navigate(NavGroup.Main.LIST.id) {
-//                            popUpTo(NavGroup.Main.CAM.id) {
-//                                inclusive = true
-//                            }
-//                        }
-//                    }
-//                },
-
             )
         }
         Image(
             modifier = Modifier.fillMaxSize(),
-            painter = BitmapPainter(image = camImage?.asImageBitmap()?: context.getDrawable(R.drawable.test)!!.toBitmap().asImageBitmap()),
+            painter = BitmapPainter(
+                image = camImage?.asImageBitmap() ?: context.getDrawable(R.drawable.test)!!
+                    .toBitmap().asImageBitmap()
+            ),
             contentDescription = "촬영된 사진"
         )
     }
 
-    
+    AnimatedVisibility(
+        visible = nowPage == 2,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        LoadingScreen()
+    }
 
+}
 
+@Composable
+fun LoadingScreen(
 
+) {
+    var textPage by remember { mutableStateOf(0) }
+    LaunchedEffect(key1 = true) {
+        (1..2).forEach { _ ->
+            delay(2000)
+            textPage += 1
+        }
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = textPage == 0,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row {
+                        Text(
+                            text = "사진을 ",
+                            color = Black,
+                            style = subtitle2,
+                        )
+                        Text(
+                            text = "업로드",
+                            color = Orange300,
+                            style = subtitle2,
+                        )
+                    }
+                    Text(
+                        text = "하고 있어요",
+                        color = Black,
+                        style = subtitle2,
+                    )
+                }
+            }
+        }
 
+        AnimatedVisibility(
+            visible = textPage == 1,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "사진의 상항을",
+                        color = Black,
+                        style = subtitle2,
+                    )
+                    Row {
+
+                        Text(
+                            text = "분석",
+                            color = Orange300,
+                            style = subtitle2,
+                        )
+                        Text(
+                            text = "하고 있어요",
+                            color = Black,
+                            style = subtitle2,
+                        )
+                    }
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = textPage == 2,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "상황에 맞는 제목과 내용을",
+                        color = Black,
+                        style = subtitle2,
+                    )
+                    Row {
+                        Text(
+                            text = "생성",
+                            color = Orange300,
+                            style = subtitle2,
+                        )
+                        Text(
+                            text = "하고 있어요",
+                            color = Black,
+                            style = subtitle2,
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 fun imageProxyToBitmap(imageProxy: ImageProxy): Bitmap? {
