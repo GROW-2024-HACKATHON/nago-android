@@ -55,6 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
@@ -80,6 +81,7 @@ import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.android.gms.location.LocationServices
 import com.grow.nago.R
 import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.animation.bounceClick
@@ -124,6 +126,10 @@ fun CameraScreen(
     var camSecondImage: Bitmap? by remember { mutableStateOf(null) }
     val coroutineScope = rememberCoroutineScope()
 
+    var latitude by remember { mutableStateOf(0.0) }
+    var longitude by remember { mutableStateOf(0.0) }
+    var location by remember { mutableStateOf("") }
+
     var nowPage by remember { mutableStateOf(0) }
 
     viewModel.sideEffect.CollectAsSideEffect {
@@ -158,6 +164,8 @@ fun CameraScreen(
         }
     }
 
+    // 위치
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         val permissionGranted = permissions.values.reduce { aac, isPermissionGranted ->
             Log.d(TAG, "CamScreen: $aac $isPermissionGranted")
@@ -178,6 +186,22 @@ fun CameraScreen(
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 return@rememberLauncherForActivityResult
+            }
+            fusedLocationClient.lastLocation.addOnSuccessListener {
+                Log.d(TAG, "CamScreen: 요청 성공")
+                try {
+                    val geoCoder = Geocoder(context, Locale.getDefault())
+                    latitude = it.latitude
+                    longitude = it.longitude
+                    val address = geoCoder.getFromLocation(it.latitude, it.longitude, 3)
+                    if (address != null) {
+//                        Log.d(TAG, "CamScreen: ${address[0].getAddressLine(0)}")
+                        location = address[0].getAddressLine(0)
+                    }
+                    Log.d(TAG, "CamScreen: $address")
+                } catch (e: Exception) {
+//                    context.shortToast("위치를 불러오는 것을 실패하였습니다.")
+                }
             }
         } else {
             return@rememberLauncherForActivityResult
@@ -263,12 +287,6 @@ fun CameraScreen(
                                                 false
                                             )
                                             Log.d(TAG, "onCaptureSuccess: $camImage")
-                                            //                                camViewModel.postImage(camImage)
-                                            //                                camViewModel.nextPage()
-//                                                camViewModel.nextNowPage()
-//                                                bottomNavVisible(false)
-//                                                Log.d(TAG, "onCaptureSuccess: ${camState.textPage}")
-//                                                Log.d(TAG, "onCaptureSuccess: $textPage")
                                         }
 
                                         override fun onError(exception: ImageCaptureException) {
@@ -494,6 +512,9 @@ fun CameraScreen(
         enter = fadeIn(),
         exit = fadeOut()
     ) {
+        LaunchedEffect(key1 = true) {
+            launcher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+        }
         DeclarationScreen(
             classification = state.reportResponse.large,
             category = state.reportResponse.small,
@@ -706,7 +727,9 @@ fun DeclarationScreen(
                 title = if (secondImage == null) "사진" else "불법 주정차 사진 1분 전",
                 content = {
                     Image(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp)),
                         painter = BitmapPainter(
                             image = firstImage.asImageBitmap()
                         ),
@@ -721,7 +744,9 @@ fun DeclarationScreen(
                     title = "불법 주정차 사진 1분 후",
                     content = {
                         Image(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp)),
                             painter = BitmapPainter(
                                 image = secondImage.asImageBitmap()
                             ),
@@ -750,6 +775,7 @@ private fun DeclarationCard(
             color = Black,
             style = subtitle3
         )
+        Spacer(modifier = Modifier.height(4.dp))
         content()
     }
 }
