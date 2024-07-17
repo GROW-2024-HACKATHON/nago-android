@@ -74,6 +74,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.grow.nago.R
 import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.animation.bounceClick
+import com.grow.nago.ui.component.NagoButton
 import com.grow.nago.ui.component.NagoButtonSelectMenu
 import com.grow.nago.ui.component.NagoTextField
 import com.grow.nago.ui.theme.Black
@@ -465,7 +466,10 @@ fun CameraScreen(
             title = "qwead",
             content = "wekwer",
             firstImage = camImage?: context.getDrawable(R.drawable.test)!!.toBitmap(),
-            secondImage = camSecondImage
+            secondImage = camSecondImage,
+            onClickUpload = { classification, category, title, content, firstImage, secondImage ->
+                
+            }
         )
     }
 
@@ -479,7 +483,15 @@ fun DeclarationScreen(
     title: String,
     content: String,
     firstImage: Bitmap,
-    secondImage: Bitmap?
+    secondImage: Bitmap?,
+    onClickUpload: (
+        classification: String,
+        category: String,
+        title: String,
+        content: String,
+        firstImage: Bitmap,
+        secondImage: Bitmap?,
+    ) -> Unit
 ) {
     var classificationText by remember { mutableStateOf(classification) }
     var categoryText by remember { mutableStateOf(category) }
@@ -498,7 +510,29 @@ fun DeclarationScreen(
             categoryText = ""
         }
     }
+    Scaffold(
+        bottomBar = {
+            Column {
+                NagoButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(horizontal = 20.dp),
+                    text = "업로드",
+                    onClick = {
+                        onClickUpload(classification, category, title, content, firstImage, secondImage)
+                    },
+                    enabled = classificationText.isNotEmpty() &&
+                            categoryText.isNotEmpty() &&
+                            titleText.isNotEmpty() &&
+                            contentText.isNotEmpty()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    ) {
 
+    }
     Column(
         modifier = Modifier.padding(horizontal = 20.dp)
     ) {
