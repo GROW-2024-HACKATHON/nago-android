@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -39,12 +40,21 @@ fun LogDetailScreen(
     viewModel: LogDetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     id: Int,
     navController: NavController,
+    navBottomVisible: (Boolean) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val item = state.reportData
 
     LaunchedEffect(key1 = true) {
+        navBottomVisible(false)
         viewModel.load(id)
+    }
+
+    LifecycleStartEffect(key1 = true) {
+        navBottomVisible(false)
+        onStopOrDispose {
+            navBottomVisible(true)
+        }
     }
     Column {
         Box(

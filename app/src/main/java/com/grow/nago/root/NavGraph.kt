@@ -42,6 +42,7 @@ import com.grow.nago.feature.home.HomeScreen
 import com.grow.nago.feature.log.LogScreen
 import com.grow.nago.feature.logdetail.LogDetailScreen
 import com.grow.nago.feature.onboard.OnBoardScreen
+import com.grow.nago.feature.setting.SettingScreen
 import com.grow.nago.local.sharedpreferences.NagoSharedPreferences
 import com.grow.nago.ui.animation.bounceClick
 import com.grow.nago.ui.component.DropShadowType
@@ -118,6 +119,7 @@ fun NavGraph(){
                                 .weight(1f)
                                 .bounceClick(
                                     onClick = {
+                                        navHostController.navigate(NavGroup.SETTING)
                                     }
                                 ),
                             resId = R.drawable.ic_normal_setting,
@@ -233,8 +235,17 @@ fun NavGraph(){
                         val id = it.arguments?.getString("id")?.toInt()?: 0
                         LogDetailScreen(
                             id = id,
-                            navController = navHostController
+                            navController = navHostController,
+                            navBottomVisible = {
+                                isShowNavBar = it
+                            }
                         )
+                    }
+
+                    composable(
+                        route = NavGroup.SETTING,
+                    ) {
+                        SettingScreen(navController = navHostController)
                     }
 
                 }
