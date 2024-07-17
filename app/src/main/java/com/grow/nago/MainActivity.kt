@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.grow.nago.feature.home.HomeScreen
+import com.grow.nago.root.NavGraph
 import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.theme.NagoTheme
 import com.grow.nago.ui.theme.White
@@ -25,40 +26,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val navHostController = rememberNavController()
             NagoTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = White
-                ) {
-                    NavHost(
-                        navController = navHostController, 
-                        startDestination = NavGroup.LOGIN
-                    ) {
-                        composable(NavGroup.LOGIN) {
-                            Greeting(name = "test")
-                            LaunchedEffect(key1 = true) {
-                                navHostController.navigate("test/qwewqqwe")
-                            }
-                        }
-                        composable(
-                            route = "test/{qwer}",
-                            arguments = listOf(
-                                navArgument("qwer") { NavType.StringType }
-                            )
-                        ) {
-                            val qwer =  it.arguments?.getString("qwer")?: ""
-                            Greeting(name = qwer)
-                        }
-
-                        composable(
-                            route = NavGroup.HOME
-                        ) {
-                            HomeScreen()
-                        }
-
-                    }
-                }
+                NavGraph()
             }
         }
     }
