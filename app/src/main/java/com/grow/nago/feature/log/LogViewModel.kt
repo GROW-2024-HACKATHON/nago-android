@@ -5,12 +5,17 @@ import androidx.lifecycle.viewModelScope
 import com.grow.nago.local.sharedpreferences.NagoSharedPreferences
 import com.grow.nago.remote.RetrofitBuilder
 import com.grow.nago.remote.request.ReportGetRequest
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LogViewModel: ViewModel() {
+
+    private val _sideEffect = Channel<LogSideEffect>()
+    val sideEffect = _sideEffect.receiveAsFlow()
 
     private val _state = MutableStateFlow(LogUiState())
     val state = _state.asStateFlow()
@@ -29,6 +34,7 @@ class LogViewModel: ViewModel() {
                     reportData = response.data
                 )
             }
+            _sideEffect.send(LogSideEffect.SuccessLoad)
         }.onFailure {
             it.printStackTrace()
         }

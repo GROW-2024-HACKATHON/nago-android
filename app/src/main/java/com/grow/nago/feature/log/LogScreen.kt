@@ -17,10 +17,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,7 +49,10 @@ import com.grow.nago.ui.theme.White
 import com.grow.nago.ui.theme.body2
 import com.grow.nago.ui.theme.subtitle1
 import com.grow.nago.ui.theme.subtitle3
+import com.grow.nago.ui.utiles.CollectAsSideEffect
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
 fun LogScreen(
@@ -49,41 +60,69 @@ fun LogScreen(
 //    navController: NavController
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var isRefresh by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefresh,
+        onRefresh = {
+            isRefresh = true
+            viewModel.load()
+        }
+    )
+
+    viewModel.sideEffect.CollectAsSideEffect {
+        when (it) {
+            is LogSideEffect.SuccessLoad -> {
+                coroutineScope.launch {
+                    isRefresh = false
+                }
+            }
+        }
+    }
 
     LaunchedEffect(key1 = true) {
         viewModel.load()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(White)
-    ) {
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            modifier = Modifier.padding(
-                start = 20.dp
-            ),
-            text = "최근 신고한 내역이에요",
-            style = subtitle1,
-            color = Black
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn {
-            items(state.reportData) {
-                Column {
-                    LogCard(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        title = it.title,
-                        date = "${it.createdAt[0]}.${it.createdAt[1]}.${it.createdAt[2]}",
-                        category = it.small,
-                        image = it.firstImage,
-                        onClick = {},
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+    Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(White)
+                .pullRefresh(pullRefreshState)
+        ) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                modifier = Modifier.padding(
+                    start = 20.dp
+                ),
+                text = "최근 신고한 내역이에요",
+                style = subtitle1,
+                color = Black
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn {
+                items(state.reportData) {
+                    Column {
+                        LogCard(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            title = it.title,
+                            date = "${it.createdAt[0]}.${it.createdAt[1]}.${it.createdAt[2]}",
+                            category = it.small,
+                            image = it.firstImage,
+                            onClick = {},
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
         }
+        PullRefreshIndicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            refreshing = isRefresh,
+            state = pullRefreshState
+        )
     }
 }
 
