@@ -1,5 +1,10 @@
 package com.grow.nago.root
 
+import android.app.Activity
+import android.os.Build
+import android.view.View
+import android.view.Window
+import android.view.WindowInsetsController
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,7 +28,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -56,7 +64,7 @@ import java.util.jar.Attributes.Name
 
 @Composable
 fun NavGraph(){
-
+    val view = LocalView.current
     val navHostController = rememberNavController()
     val backstackEntry by navHostController.currentBackStackEntryAsState()
     val selectRoute = backstackEntry?.destination?.route
@@ -66,6 +74,13 @@ fun NavGraph(){
 
     LaunchedEffect(key1 = true) {
         isLogin = NagoSharedPreferences.getNagoSharedPreferences().myName.isNotEmpty()
+    }
+
+    LaunchedEffect(key1 = true) {
+        if (!view.isInEditMode) {
+            val window = (view.context as Activity).window
+            changeNavigationColor(window, White, false)
+        }
     }
 
     Surface(
@@ -276,5 +291,19 @@ private fun NavCard(
             color = if (isSelected) Orange300 else Gray500,
             style = caption2
         )
+    }
+}
+
+private fun changeNavigationColor(window: Window, backgroundColor: Color, isDark: Boolean) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        window.statusBarColor = backgroundColor.toArgb()
+        window.insetsController?.setSystemBarsAppearance(
+            if (isDark) 0 else WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+        )
+    } else {
+        @Suppress("DEPRECATION")
+        window.decorView.systemUiVisibility =
+            if (isDark) 0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
     }
 }
