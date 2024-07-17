@@ -56,6 +56,7 @@ fun NagoTextField(
     enabled: Boolean = true,
     secured: Boolean = false,
     singleLine: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     textStyle: TextStyle = subtitle3.copy(fontWeight = FontWeight.Normal),
     shape: Shape = RoundedCornerShape(12.dp),
     trailingIcon: @Composable (() -> Unit)? = null,
