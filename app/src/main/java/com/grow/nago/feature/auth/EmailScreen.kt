@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,16 +19,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.grow.nago.ui.component.NagoButton
 import com.grow.nago.ui.component.NagoTextField
 import com.grow.nago.ui.theme.title1
 
 @Composable
-fun EmailScreen(navController: NavController, phoneNum: String,wasName : String) {
+fun EmailScreen(viewModel: EmailViewModel = viewModel(), navController: NavController, phoneNum: String, wasName : String) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     var emailText by remember {
@@ -85,6 +82,7 @@ fun EmailScreen(navController: NavController, phoneNum: String,wasName : String)
             onClick = {
                 if (emailText.isNotEmpty()) {
                     Toast.makeText(context,"${phoneNum} ~ ${wasName} ~ ${emailText}", Toast.LENGTH_SHORT).show()
+                    viewModel.saveData(phoneNum, emailText, wasName)
                 }
                 else{
                     Toast.makeText(context,"이름을 입력해주세요.", Toast.LENGTH_SHORT).show()

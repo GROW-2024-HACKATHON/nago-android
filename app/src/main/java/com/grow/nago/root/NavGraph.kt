@@ -136,7 +136,7 @@ fun NavGraph(){
             NavHost(
                 modifier = Modifier.padding(it),
                 navController = navHostController,
-                startDestination = NavGroup.LOG
+                startDestination = NavGroup.PHONE
             ) {
                 composable(NavGroup.LOGIN) {
                     Greeting(name = "test")
@@ -189,7 +189,11 @@ fun NavGraph(){
                 ){
                     val phoneNum =  it.arguments?.getString("phone")?: ""
                     val name = it.arguments?.getString("name")?: ""
-                    EmailScreen(navHostController,phoneNum,name)
+                    EmailScreen(
+                        navController = navHostController,
+                        phoneNum = phoneNum,
+                        wasName = name
+                    )
                 }
                 composable(NavGroup.CAMERA) {
                     CameraScreen(
