@@ -9,12 +9,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.grow.nago.root.NavGroup
 import com.grow.nago.ui.component.NagoButton
 import com.grow.nago.ui.component.NagoTextField
+import com.grow.nago.ui.theme.Gray400
 import com.grow.nago.ui.theme.title1
 
 
@@ -34,6 +39,8 @@ fun PhoneNumberScreen(
     navController: NavController
 ) {
     val context = LocalContext.current
+    val focusRequester = remember { FocusRequester() }
+
 
     var phoneNumber by remember {
         mutableStateOf("")
@@ -45,12 +52,17 @@ fun PhoneNumberScreen(
             style = title1)
 
         NagoTextField(
-            modifier = Modifier.padding(horizontal = 20.dp),
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .focusRequester(focusRequester),
             value = phoneNumber,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             onValueChange = { phoneNumber = it },
-            hint = "전화번호를 입력해주세요"
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            hint = "전화번호를 입력해주세요",
         )
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
 
         Box(modifier = Modifier.weight(1f))
         NagoButton(

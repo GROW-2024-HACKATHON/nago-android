@@ -8,5 +8,5 @@ object NavGroup {
 
     const val PHONE = "phone"
     const val NAME = "name/{phone}"
-    const val EMAIL = "email/{phone}/{email}"
+    const val EMAIL = "email/{phone}/{name}"
 }
