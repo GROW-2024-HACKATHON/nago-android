@@ -1,7 +1,11 @@
+import java.util.Properties
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
 }
+
+val properties = Properties()
+properties.load(project.rootProject.file("local.properties").inputStream())
 
 android {
     namespace = "com.grow.nago"
@@ -14,6 +18,8 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+
+        buildConfigField("String", "SERVER", "${properties["SERVER"]}")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -38,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -77,5 +84,10 @@ dependencies {
     implementation(libs.androidx.compose.lifecycle)
 
     implementation(libs.accompanist.permissions)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 
 }

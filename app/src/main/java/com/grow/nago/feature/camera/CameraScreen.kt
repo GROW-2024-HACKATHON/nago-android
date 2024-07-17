@@ -41,7 +41,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -68,6 +70,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -83,6 +87,7 @@ import com.grow.nago.ui.theme.White
 import com.grow.nago.ui.theme.subtitle1
 import com.grow.nago.ui.theme.subtitle2
 import com.grow.nago.ui.theme.subtitle3
+import com.grow.nago.ui.utiles.CollectAsSideEffect
 import com.grow.nago.ui.utiles.drive
 import com.grow.nago.ui.utiles.life
 import com.grow.nago.ui.utiles.parking
@@ -97,8 +102,11 @@ const val TAG = "TAG"
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraScreen(
-    navVisibleChange: (Boolean) -> Unit
+    viewModel: CameraViewModel = viewModel(),
+    navVisibleChange: (Boolean) -> Unit,
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     // 카메라
     val context = LocalContext.current
     val permissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
@@ -108,7 +116,20 @@ fun CameraScreen(
     var camSecondImage: Bitmap? by remember { mutableStateOf(null) }
     val coroutineScope = rememberCoroutineScope()
 
-    var nowPage by remember { mutableStateOf(6) }
+    var nowPage by remember { mutableStateOf(0) }
+
+    viewModel.sideEffect.CollectAsSideEffect {
+        when(it) {
+            is CameraSideEffect.SuccessParking -> {
+                coroutineScope.launch {
+                    nowPage = 3
+                }
+            }
+            is CameraSideEffect.SuccessUpload -> {
+                nowPage = 6
+            }
+        }
+    }
 
     LaunchedEffect(key1 = true) {
         navVisibleChange(false)
@@ -270,6 +291,7 @@ fun CameraScreen(
                             coroutineScope.launch {
                                 Log.d(TAG, "CameraScreen: log $nowPage")
                                 nowPage = 2
+                                viewModel.uploadImage(camImage!!)
                             }
                         }
                     )
@@ -298,10 +320,6 @@ fun CameraScreen(
         enter = fadeIn(),
         exit = fadeOut()
     ) {
-        LaunchedEffect(key1 = true) {
-            delay(4000)
-            nowPage = 3
-        }
         LoadingScreen()
     }
 
@@ -461,14 +479,14 @@ fun CameraScreen(
         exit = fadeOut()
     ) {
         DeclarationScreen(
-            classification = "분류",
-            category = "123",
-            title = "qwead",
-            content = "wekwer",
+            classification = state.reportResponse.large,
+            category = state.reportResponse.small,
+            title = state.reportResponse.title,
+            content = state.reportResponse.content,
             firstImage = camImage?: context.getDrawable(R.drawable.test)!!.toBitmap(),
             secondImage = camSecondImage,
             onClickUpload = { classification, category, title, content, firstImage, secondImage ->
-                
+
             }
         )
     }
@@ -493,17 +511,17 @@ fun DeclarationScreen(
         secondImage: Bitmap?,
     ) -> Unit
 ) {
-    var classificationText by remember { mutableStateOf(classification) }
     var categoryText by remember { mutableStateOf(category) }
+    var classificationText by remember { mutableStateOf(classification) }
     var titleText by remember { mutableStateOf(title) }
     var contentText by remember { mutableStateOf(content) }
 
     LaunchedEffect(key1 = classificationText) {
         val isSuccess = when {
-            classificationText == "안전신고" && categoryText in safety -> true
-            classificationText == "생활 불편 신고" && categoryText in life -> true
-            classificationText == "자동차 · 교통위반" && categoryText in drive -> true
-            classificationText == "불법주정차" && categoryText in parking -> true
+            classificationText == "안전" && safety.contains(categoryText) -> true
+            classificationText == "생활불편" && life.contains(categoryText)  -> true
+            classificationText == "자동차 교통위반" && drive.contains(categoryText) -> true
+            classificationText == "불법주정차" && parking.contains(categoryText) -> true
             else -> false
         }
         if (isSuccess.not()) {
@@ -531,112 +549,114 @@ fun DeclarationScreen(
             }
         }
     ) {
-
-    }
-    Column(
-        modifier = Modifier.padding(horizontal = 20.dp)
-    ) {
-        Spacer(modifier = Modifier.height(12.dp))
-        DeclarationCard(
-            modifier = Modifier.fillMaxWidth(),
-            title = "분류",
-            content = {
-                NagoButtonSelectMenu(
-                    modifier = Modifier.height(48.dp),
-                    text = classificationText,
-                    itemList = listOf("안전신고", "생활 불편 신고", "자동차 · 교통위반", "불법주정차"),
-                    hint = classificationText,
-                    onSelectItemListener = {
-                        classificationText = it
-                    }
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        DeclarationCard(
-            modifier = Modifier.fillMaxWidth(),
-            title = "카테고리",
-            content = {
-                NagoButtonSelectMenu(
-                    modifier = Modifier.height(48.dp),
-                    text = categoryText,
-                    itemList = when (classificationText) {
-                        "안전신고" -> safety
-                        "생활 불편 신고" -> life
-                        "자동차 · 교통위반" -> drive
-                        "불법주정차" -> parking
-                        else -> listOf()
-                    },
-                    hint = categoryText,
-                    onSelectItemListener = {
-                        categoryText = it
-                    }
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        DeclarationCard(
-            modifier = Modifier.fillMaxWidth(),
-            title = "제목",
-            content = {
-                NagoTextField(
-                    value = titleText,
-                    hint = "신고할 제목을 입력하세요",
-                    onValueChange = {
-                        titleText = it
-                    },
-                    textStyle = subtitle3
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        DeclarationCard(
-            modifier = Modifier.fillMaxWidth(),
-            title = "내용",
-            content = {
-                NagoTextField(
-                    modifier = Modifier.heightIn(min = 108.dp),
-                    value = contentText,
-                    hint = "신고할 내용을 입력하세요",
-                    onValueChange = {
-                        contentText = it
-                    },
-                    singleLine = false,
-                    textStyle = subtitle3
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        DeclarationCard(
-            modifier = Modifier.fillMaxWidth(),
-            title = if (secondImage == null) "사진" else "불법 주정차 사진 1분 전",
-            content = {
-                Image(
-                    modifier = Modifier.fillMaxWidth(),
-                    painter = BitmapPainter(
-                        image = firstImage.asImageBitmap()
-                    ),
-                    contentDescription = "촬영된 사진"
-                )
-            }
-        )
-        if (secondImage != null) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .padding(it)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Spacer(modifier = Modifier.height(12.dp))
+            DeclarationCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "분류",
+                content = {
+                    NagoButtonSelectMenu(
+                        modifier = Modifier.height(48.dp),
+                        text = classificationText,
+                        itemList = listOf("안전", "생활불편", "자동차 교통위반", "불법주정차"),
+                        hint = classificationText,
+                        onSelectItemListener = {
+                            classificationText = it
+                        }
+                    )
+                }
+            )
             Spacer(modifier = Modifier.height(16.dp))
             DeclarationCard(
                 modifier = Modifier.fillMaxWidth(),
-                title = "불법 주정차 사진 1분 후",
+                title = "카테고리",
+                content = {
+                    NagoButtonSelectMenu(
+                        modifier = Modifier.height(48.dp),
+                        text = categoryText,
+                        itemList = when (classificationText) {
+                            "안전" -> safety
+                            "생활불편" -> life
+                            "자동차 교통위반" -> drive
+                            "불법주정차" -> parking
+                            else -> listOf()
+                        },
+                        hint = categoryText,
+                        onSelectItemListener = {
+                            categoryText = it
+                        }
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            DeclarationCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "제목",
+                content = {
+                    NagoTextField(
+                        value = titleText,
+                        hint = "신고할 제목을 입력하세요",
+                        onValueChange = {
+                            titleText = it
+                        },
+                        textStyle = subtitle3
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            DeclarationCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "내용",
+                content = {
+                    NagoTextField(
+                        modifier = Modifier.heightIn(min = 108.dp),
+                        value = contentText,
+                        hint = "신고할 내용을 입력하세요",
+                        onValueChange = {
+                            contentText = it
+                        },
+                        singleLine = false,
+                        textStyle = subtitle3
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            DeclarationCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = if (secondImage == null) "사진" else "불법 주정차 사진 1분 전",
                 content = {
                     Image(
                         modifier = Modifier.fillMaxWidth(),
                         painter = BitmapPainter(
-                            image = secondImage.asImageBitmap()
+                            image = firstImage.asImageBitmap()
                         ),
                         contentDescription = "촬영된 사진"
                     )
                 }
             )
+            if (secondImage != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                DeclarationCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = "불법 주정차 사진 1분 후",
+                    content = {
+                        Image(
+                            modifier = Modifier.fillMaxWidth(),
+                            painter = BitmapPainter(
+                                image = secondImage.asImageBitmap()
+                            ),
+                            contentDescription = "촬영된 사진"
+                        )
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(48.dp))
         }
-        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 
