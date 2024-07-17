@@ -60,7 +60,7 @@ fun NavGraph(){
     var isShowNavBar by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
     var isLogin: Boolean? by remember { mutableStateOf(null) }
-    
+
     LaunchedEffect(key1 = true) {
         isLogin = NagoSharedPreferences.getNagoSharedPreferences().myName.isNotEmpty()
     }

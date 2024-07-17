@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okio.BufferedSink
@@ -42,6 +43,28 @@ class CameraViewModel: ViewModel() {
                 )
             }
             _sideEffect.send( if(response.data.large == "불법주정차") CameraSideEffect.SuccessParking else CameraSideEffect.SuccessUpload)
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
+
+    fun uploadSecondImage(image: Bitmap) = viewModelScope.launch {
+
+        val bitmapRequestBody = BitmapRequestBody(image)
+        //multipart/form-data
+        val bitmapMultipartBody: MultipartBody.Part = MultipartBody.Part.createFormData("image", "CamView.jpeg", bitmapRequestBody)
+        kotlin.runCatching {
+            RetrofitBuilder.reportService.addImageUpload(
+                image = bitmapMultipartBody,
+                id = RequestBody.create("text/plain".toMediaTypeOrNull(), _state.value.reportResponse.id.toString())
+            )
+        }.onSuccess { response ->
+            _state.update {
+                it.copy(
+                    reportResponse = response.data
+                )
+            }
+            _sideEffect.send(CameraSideEffect.SuccessUpload)
         }.onFailure {
             it.printStackTrace()
         }

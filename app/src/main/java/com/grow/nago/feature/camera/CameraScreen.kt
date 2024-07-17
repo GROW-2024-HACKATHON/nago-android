@@ -483,7 +483,9 @@ fun CameraScreen(
                         onClick = {
                             coroutineScope.launch {
                                 Log.d(TAG, "CameraScreen: log $nowPage")
-                                nowPage = 6
+                                viewModel.uploadSecondImage(camSecondImage!!)
+                                nowPage = 2
+//                                nowPage = 6
                             }
                         }
                     )
@@ -880,7 +882,7 @@ fun LoadingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "사진의 상항을",
+                        text = "사진의 상황을",
                         color = Black,
                         style = subtitle2,
                     )
