@@ -73,17 +73,21 @@ fun EmailScreen(
             text = "다음",
             enabled = emailText.isNotEmpty(),
             onClick = {
-                if (emailText.isNotEmpty()) {
-                    viewModel.saveData(phoneNum, emailText, wasName)
-                    navBottomVisible(true)
-                    while (navController.popBackStack()) {
+                if (emailText.isEmpty()) {
+                    Toast.makeText(context,"이메일을 입력해주세요.", Toast.LENGTH_SHORT).show()
+                    return@NagoButton
+                }
+                val emailRegex = "^[A-Za-z0-9\\._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}\$".toRegex()
+                if (emailRegex.matches(emailText).not()) {
+                    Toast.makeText(context,"유효한 이메일을 입력해주세요.", Toast.LENGTH_SHORT).show()
+                    return@NagoButton
+                }
+                viewModel.saveData(phoneNum, emailText, wasName)
+                navBottomVisible(true)
+                while (navController.popBackStack()) {
 
-                    }
-                    navController.navigate(NavGroup.LOG)
                 }
-                else{
-                    Toast.makeText(context,"이름을 입력해주세요.", Toast.LENGTH_SHORT).show()
-                }
+                navController.navigate(NavGroup.LOG)
             },
             contentPadding = PaddingValues(vertical = 17.5.dp)
         )
